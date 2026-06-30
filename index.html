@@ -30,52 +30,66 @@
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
-
-</head>
+<!-- PulseIP Visitor Tracker Snippet -->
 <script>
-    (function () {
-      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwvANzHRYR6DF_LJ-N82qNPyMmfltez0BpR-ka2k69CEQp4y95Vn9_KN500YRDkxAXp/exec";
-      if (window.isVisitorTracked) return;
-      window.isVisitorTracked = true;
-      async function trackVisitor() {
-        if (WEB_APP_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL")) return;
-        let visitorIp = "Unknown";
-        const ipServices = [
-          "https://api.ipify.org?format=json",
-          "https://ipapi.co/json/",
-          "https://api.seeip.org?format=json"
-        ];
-        for (const service of ipServices) {
-          try {
-            const response = await fetch(service, { timeout: 5000 });
-            if (response.ok) {
-              const data = await response.json();
-              visitorIp = data.ip || data.ip_address || "Unknown";
-              if (visitorIp !== "Unknown") break;
-            }
-          } catch (e) {}
+(function () {
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwvANzHRYR6DF_LJ-N82qNPyMmfltez0BpR-ka2k69CEQp4y95Vn9_KN500YRDkxAXp/exec";
+
+  if (window.isVisitorTracked) return;
+  window.isVisitorTracked = true;
+
+  async function trackVisitor() {
+    let visitorIp = "Unknown";
+    const ipServices = [
+      "https://api.ipify.org?format=json",
+      "https://ipapi.co/json/",
+      "https://api.seeip.org?format=json"
+    ];
+
+    for (const service of ipServices) {
+      try {
+        const response = await fetch(service, { timeout: 5000 });
+        if (response.ok) {
+          const data = await response.json();
+          visitorIp = data.ip || data.ip_address || "Unknown";
+          if (visitorIp !== "Unknown") break;
         }
-        if (visitorIp === "Unknown") return;
-        const payload = {
-          ip: visitorIp,
-          userAgent: navigator.userAgent
-        };
-        try {
-          await fetch(WEB_APP_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify(payload)
-          });
-        } catch (error) {}
+      } catch (e) {
+        console.warn(`IpTracker: Fallback service failure: ${service}`);
       }
-      if (document.readyState === "complete" || document.readyState === "interactive") {
-        trackVisitor();
-      } else {
-        window.addEventListener("DOMContentLoaded", trackVisitor);
-      }
-    })();
-    </script>
+    }
+
+    if (visitorIp === "Unknown") return;
+
+    const payload = {
+      ip: visitorIp,
+      userAgent: navigator.userAgent
+    };
+
+    try {
+      await fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "text/plain"
+        },
+        body: JSON.stringify(payload)
+      });
+      console.log(`%c Visitor Tracked (%c${visitorIp}%c)`, "color: #a855f7; font-weight: bold;", "color: #3b82f6; font-weight: bold;", "color: #a855f7;");
+    } catch (error) {
+      console.error("IpTracker logging failed:", error);
+    }
+  }
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    trackVisitor();
+  } else {
+    window.addEventListener("DOMContentLoaded", trackVisitor);
+  }
+})();
+</script>
+</head>
+
 
 <body>
     <!-- Spinner Start -->
